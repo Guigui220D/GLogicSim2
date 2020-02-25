@@ -1,0 +1,18 @@
+# Build Results
+bin/
+obj/
+
+# Dlls
+*.dll
+*.exe
+
+# Code::Blocks files
+*.cbp
+*.depend
+*.layout
+*.cscope_file_list
+
+# xCode files
+*.xcodeproj
+*.plist
+
