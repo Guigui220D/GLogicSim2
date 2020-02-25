@@ -3,9 +3,14 @@
 #include <SFML/Graphics.hpp>
 #include <SFML/Window.hpp>
 
+#include "Line.h"
 #include "TiledBackground.h"
 
 #include "imgui.h"
+
+#include "Gate.h"
+
+#include <vector>
 
 class Program
 {
@@ -26,6 +31,6 @@ class Program
         bool dragging = false;
         sf::Vector2f drag_origin;
 
-        sf::CircleShape test;
-
+        std::vector<std::shared_ptr<Gate>> gates;
+        std::weak_ptr<Gate> selected_gate;
 };

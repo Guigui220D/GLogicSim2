@@ -4,12 +4,12 @@
 
 #include <iostream>
 
+#include "NotGate.h"
+
 Program::Program() :
     render_window(sf::VideoMode(640, 480), "GLogicSim2"),
     imgui_io(nullptr)
 {
-    test.setFillColor(sf::Color::Red);
-    test.setRadius(50.f);
 }
 
 Program::~Program()
@@ -23,6 +23,8 @@ bool Program::init()
     imgui_io = &ImGui::GetIO();
 
     background.updateWithView(render_window.getView());
+
+    gates.push_back(std::make_shared<NotGate>());
 
     return true;
 }
@@ -79,6 +81,20 @@ void Program::run()
                     }
                     break;
 
+                case sf::Event::KeyPressed:
+                    switch (event.key.code)
+                    {
+                    case sf::Keyboard::A:
+                        selected_gate = gates.at(0);
+                        break;
+                    case sf::Keyboard::B:
+                        gates.erase(gates.begin());
+                        break;
+                    default: break;
+                    }
+
+                    break;
+
                 default: break;
                 }
             }
@@ -86,6 +102,9 @@ void Program::run()
 
         //Updates
         delta = delta_clock.getElapsedTime().asSeconds();
+
+        for (const std::shared_ptr<Gate>& gate : gates)
+            gate->update(delta);
 
         if (dragging)
         {
@@ -102,23 +121,22 @@ void Program::run()
 
         ImGui::SFML::Update(render_window, delta_clock.restart());
 
-        /*
-        ImGui::Begin("Box");
-            ImGui::Button("Button");
-        ImGui::End();
-        */
-
-        //ImGui::Beg
-
         ImGui::Begin("Selected gate");
-            ImGui::Text("Click on a gate to edit it");
+            if (std::shared_ptr<Gate> spt = selected_gate.lock())
+            {
+
+            }
+            else
+                ImGui::Text("Click on a gate to edit it");
         ImGui::End();
 
         //Drawing
         render_window.clear();
 
         render_window.draw(background);
-        render_window.draw(test);
+
+        for (const std::shared_ptr<Gate>& gate : gates)
+            render_window.draw(*gate);
 
         ImGui::SFML::Render(render_window);
 

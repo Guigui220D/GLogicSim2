@@ -20,7 +20,6 @@ TiledBackground::TiledBackground() :
     render_texture.display();
 
     t = render_texture.getTexture();
-    t.setSmooth(true);
     t.setRepeated(true);
 }
 
