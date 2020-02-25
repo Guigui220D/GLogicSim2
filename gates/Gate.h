@@ -15,11 +15,16 @@ class Gate : public sf::Drawable
 
         void draw(sf::RenderTarget &target, sf::RenderStates states) const;
 
-        inline sf::Vector2f getPosition() const { return position; }
-        inline void setPosition(sf::Vector2f new_pos) { position = new_pos; }
-        inline void move(sf::Vector2f vector) { position += vector; }
-
         virtual void update(float delta) = 0;
+
+        virtual void makeImGuiInterface() = 0;
+
+        bool selected = false;
+
+        static sf::Font icon_font;
+
+        sf::Vector2f position;
+        float angle = 0.f;
 
     protected:
         std::vector<std::shared_ptr<Input>> inputs;
@@ -28,7 +33,5 @@ class Gate : public sf::Drawable
         virtual void drawGate(sf::RenderTarget &target, sf::RenderStates states) const = 0;
 
     private:
-        void drawPorts(sf::RenderTarget &target) const;
-
-        sf::Vector2f position;
+        void drawPorts(sf::RenderTarget &target, sf::RenderStates states) const;
 };

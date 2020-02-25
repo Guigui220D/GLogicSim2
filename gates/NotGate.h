@@ -12,6 +12,10 @@ class NotGate : public Gate
 
         void update(float delta) override;
 
+        void makeImGuiInterface() override;
+
     private:
-        sf::ConvexShape shape;
+        sf::RectangleShape rect;
+        sf::CircleShape circ;
+        sf::Text icon;
 };

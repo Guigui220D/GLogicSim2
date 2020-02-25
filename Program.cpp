@@ -8,7 +8,8 @@
 
 Program::Program() :
     render_window(sf::VideoMode(640, 480), "GLogicSim2"),
-    imgui_io(nullptr)
+    imgui_io(nullptr),
+    menu_line(sf::Vector2f(), sf::Vector2f())
 {
 }
 
@@ -19,8 +20,14 @@ bool Program::init()
 {
     render_window.setFramerateLimit(60);
 
+    if (!Gate::icon_font.loadFromFile("arial.ttf"))
+        return false;
+
     ImGui::SFML::Init(render_window);
     imgui_io = &ImGui::GetIO();
+
+    menu_line.setFillColor(sf::Color::Black);
+    menu_line.setThickness(1.f);
 
     background.updateWithView(render_window.getView());
 
@@ -86,9 +93,14 @@ void Program::run()
                     {
                     case sf::Keyboard::A:
                         selected_gate = gates.at(0);
+                        gates.at(0)->selected = true;
                         break;
-                    case sf::Keyboard::B:
-                        gates.erase(gates.begin());
+                    case sf::Keyboard::Escape:
+                        if (std::shared_ptr<Gate> spt = selected_gate.lock())
+                        {
+                            spt->selected = false;
+                            selected_gate.reset();
+                        }
                         break;
                     default: break;
                     }
@@ -122,13 +134,24 @@ void Program::run()
         ImGui::SFML::Update(render_window, delta_clock.restart());
 
         ImGui::Begin("Selected gate");
+            sf::Vector2i menu_pos = ImGui::GetCursorScreenPos();
+
             if (std::shared_ptr<Gate> spt = selected_gate.lock())
             {
+                spt->makeImGuiInterface();
 
+                ImGui::Separator();
+
+                ImGui::SliderFloat("Angle", &spt->angle, -180.f, 180.f, "%f", 1.f);
+
+                if (ImGui::Button("Delete"))
+                    gates.erase(std::find(gates.begin(), gates.end(), spt));
             }
             else
                 ImGui::Text("Click on a gate to edit it");
         ImGui::End();
+
+        menu_line.setPointB(render_window.mapPixelToCoords(menu_pos));
 
         //Drawing
         render_window.clear();
@@ -137,6 +160,9 @@ void Program::run()
 
         for (const std::shared_ptr<Gate>& gate : gates)
             render_window.draw(*gate);
+
+        if (selected_gate.lock())
+            render_window.draw(menu_line);
 
         ImGui::SFML::Render(render_window);
 

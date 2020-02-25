@@ -6,7 +6,8 @@ TiledBackground::TiledBackground() :
     sf::RenderTexture render_texture;
     render_texture.create(100, 100);
 
-    render_texture.clear(sf::Color(254, 229, 153));
+    //render_texture.clear(sf::Color(254, 229, 153));
+    render_texture.clear(sf::Color(50, 80, 150));
     {
         sf::RectangleShape rs;
         rs.setFillColor(sf::Color(0, 0, 0, 30));

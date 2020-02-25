@@ -14,9 +14,11 @@ class Output
         inline void setState(bool new_state) { state = new_state; }
         inline bool getState() { return state; }
 
-        void draw(sf::RenderTarget &target, const Gate& gate) const;
+        void draw(sf::RenderTarget &target, sf::Transform transform, const Gate& gate) const;
 
     private:
+        sf::Vector2f relative_pos;
+
         bool state = false;
 
         mutable sf::CircleShape circle;

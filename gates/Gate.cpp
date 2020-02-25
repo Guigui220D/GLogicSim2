@@ -1,5 +1,7 @@
 #include "Gate.h"
 
+sf::Font Gate::icon_font;
+
 Gate::Gate()
 {
     //ctor
@@ -12,15 +14,18 @@ Gate::~Gate()
 
 void Gate::draw(sf::RenderTarget &target, sf::RenderStates states) const
 {
+    states.transform.translate(position);
+    states.transform.rotate(angle);
+
     drawGate(target, states);
-    drawPorts(target);
+    drawPorts(target, states);
 }
 
-void Gate::drawPorts(sf::RenderTarget &target) const
+void Gate::drawPorts(sf::RenderTarget &target, sf::RenderStates states) const
 {
     for (const std::shared_ptr<Input>& input : inputs)
-        input->draw(target, *this);
+        input->draw(target, states.transform, *this);
 
     for (const std::shared_ptr<Output>& output : outputs)
-        output->draw(target, *this);
+        output->draw(target, states.transform, *this);
 }

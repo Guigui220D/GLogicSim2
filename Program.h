@@ -28,6 +28,8 @@ class Program
 
         ImGuiIO* imgui_io;
 
+        Line menu_line;
+
         bool dragging = false;
         sf::Vector2f drag_origin;
 
