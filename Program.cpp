@@ -47,8 +47,14 @@ void Program::run()
                     break;
 
                 case sf::Event::Resized:
-                    render_window.setView(sf::View(sf::Vector2f(0, 0), sf::Vector2f(render_window.getSize().x, render_window.getSize().y)));
-                    background.updateWithView(render_window.getView());
+                    {
+                        sf::View v = render_window.getView();
+
+                        v.setSize(sf::Vector2f(render_window.getSize().x, render_window.getSize().y));
+
+                        render_window.setView(v);
+                        background.updateWithView(v);
+                    }
                     break;
 
                 case sf::Event::MouseButtonPressed:
@@ -60,6 +66,17 @@ void Program::run()
 
                 case sf::Event::MouseButtonReleased:
                     dragging = false;
+                    break;
+
+                case sf::Event::MouseWheelScrolled:
+                    {
+                        sf::View v = render_window.getView();
+
+                        v.zoom(1.f + .1f * -event.mouseWheelScroll.delta);
+
+                        render_window.setView(v);
+                        background.updateWithView(v);
+                    }
                     break;
 
                 default: break;
@@ -85,11 +102,17 @@ void Program::run()
 
         ImGui::SFML::Update(render_window, delta_clock.restart());
 
+        /*
         ImGui::Begin("Box");
             ImGui::Button("Button");
         ImGui::End();
+        */
 
         //ImGui::Beg
+
+        ImGui::Begin("Selected gate");
+            ImGui::Text("Click on a gate to edit it");
+        ImGui::End();
 
         //Drawing
         render_window.clear();

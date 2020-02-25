@@ -4,17 +4,17 @@ TiledBackground::TiledBackground() :
     va(sf::Quads, 4)
 {
     sf::RenderTexture render_texture;
-    render_texture.create(32, 32);
+    render_texture.create(100, 100);
 
     render_texture.clear(sf::Color(254, 229, 153));
     {
         sf::RectangleShape rs;
-        rs.setFillColor(sf::Color(0, 0, 0, 100));
+        rs.setFillColor(sf::Color(0, 0, 0, 30));
+        rs.setSize(sf::Vector2f(50.f, 50.f));
 
-        rs.setSize(sf::Vector2f(32.f, 1.f));
         render_texture.draw(rs);
 
-        rs.setSize(sf::Vector2f(1.f, 32.f));
+        rs.setPosition(sf::Vector2f(50.f, 50.f));
         render_texture.draw(rs);
     }
     render_texture.display();
