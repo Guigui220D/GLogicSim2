@@ -16,3 +16,8 @@ obj/
 *.xcodeproj
 *.plist
 
+
+
+
+imgui.ini
+

@@ -1,7 +1,30 @@
+#include "Program.h"
 
+#include <iostream>
+
+#include <SFML/System/Clock.hpp>
 
 int main()
 {
+    Program program;
+
+    {
+        std::clog << "Initializing simulator..." << std::endl;
+
+        sf::Clock timer;
+
+        if (!program.init())
+        {
+            std::cerr << "Fatal : Could not initialize simulator." << std::endl;
+            return 1;
+        }
+
+        std::clog << "Successfully initialized simulator in " << timer.restart().asSeconds() << "s." << std::endl;
+    }
+
+    program.run();
+
+    program.end();
 
     return 0;
 }
