@@ -15,7 +15,8 @@ Gate::~Gate()
 void Gate::draw(sf::RenderTarget &target, sf::RenderStates states) const
 {
     states.transform.translate(position);
-    states.transform.rotate(angle);
+    states.transform.rotate(45.f * rotation);
+    states.transform.scale(size, size);
 
     drawGate(target, states);
     drawPorts(target, states);

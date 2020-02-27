@@ -24,7 +24,8 @@ class Gate : public sf::Drawable
         static sf::Font icon_font;
 
         sf::Vector2f position;
-        float angle = 0.f;
+        int rotation = 0;
+        int size = 2;
 
     protected:
         std::vector<std::shared_ptr<Input>> inputs;

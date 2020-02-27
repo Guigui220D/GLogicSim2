@@ -20,14 +20,21 @@ bool Program::init()
 {
     render_window.setFramerateLimit(60);
 
+    {
+        sf::View v = render_window.getView();
+        v.zoom(3.f);
+        menu_line.setThickness(3.f * v.getSize().x / render_window.getSize().x);
+        render_window.setView(v);
+    }
+
     if (!Gate::icon_font.loadFromFile("arial.ttf"))
         return false;
 
     ImGui::SFML::Init(render_window);
     imgui_io = &ImGui::GetIO();
 
-    menu_line.setFillColor(sf::Color::Black);
-    menu_line.setThickness(1.f);
+    menu_line.setFillColor(sf::Color::Cyan);
+    menu_line.setThickness(3.f);
 
     background.updateWithView(render_window.getView());
 
@@ -61,6 +68,7 @@ void Program::run()
 
                         v.setSize(sf::Vector2f(render_window.getSize().x, render_window.getSize().y));
 
+                        menu_line.setThickness(3.f * v.getSize().x / render_window.getSize().x);
                         render_window.setView(v);
                         background.updateWithView(v);
                     }
@@ -82,6 +90,8 @@ void Program::run()
                         sf::View v = render_window.getView();
 
                         v.zoom(1.f + .1f * -event.mouseWheelScroll.delta);
+
+                        menu_line.setThickness(3.f * v.getSize().x / render_window.getSize().x);
 
                         render_window.setView(v);
                         background.updateWithView(v);
@@ -142,15 +152,25 @@ void Program::run()
 
                 ImGui::Separator();
 
-                ImGui::SliderFloat("Angle", &spt->angle, -180.f, 180.f, "%f", 1.f);
+                ImGui::SliderInt("Angle", &spt->rotation, -4, 4, "");
+                ImGui::SliderInt("Size", &spt->size, 1, 3, "");
 
                 if (ImGui::Button("Delete"))
                     gates.erase(std::find(gates.begin(), gates.end(), spt));
+
+                if (ImGui::Button("Deselect"))
+                {
+                    spt->selected = false;
+                    selected_gate.reset();
+                }
+
             }
             else
                 ImGui::Text("Click on a gate to edit it");
         ImGui::End();
 
+        if (std::shared_ptr<Gate> spt = selected_gate.lock())
+            menu_line.setPointA(spt->position);
         menu_line.setPointB(render_window.mapPixelToCoords(menu_pos));
 
         //Drawing
