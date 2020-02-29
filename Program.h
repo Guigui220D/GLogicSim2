@@ -36,10 +36,14 @@ class Program
         bool dragging = false;
         sf::Vector2f drag_origin;
 
+        void deselectGate();
+
         std::vector<std::shared_ptr<Gate>> gates;
         std::weak_ptr<Gate> selected_gate;
         std::weak_ptr<Connector> selected_connected;
 
         bool moving_gate = false;
         bool grid_mode = true;
+
+        static const char* gate_type_names[];
 };

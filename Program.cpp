@@ -7,6 +7,12 @@
 
 #include "NotGate.h"
 
+const char* Program::gate_type_names[] =
+{
+    "Buffer Gate",
+    "Not Gate"
+};
+
 Program::Program() :
     render_window(sf::VideoMode(640, 480), "GLogicSim2"),
     imgui_io(nullptr),
@@ -94,8 +100,7 @@ void Program::run()
                             {
                                 if (gate->takeClick(mpos))
                                 {
-                                    if (std::shared_ptr<Gate> spt = selected_gate.lock())
-                                        spt->selected = false;
+                                    deselectGate();
                                     selected_gate = gate;
                                     gate->selected = true;
                                     clicked = true;
@@ -118,19 +123,12 @@ void Program::run()
                                 break;
                             }
 
-                            if (std::shared_ptr<Gate> spt = selected_gate.lock())
-                            {
-                                moving_gate = false;
-                                spt->selected = false;
-                                selected_gate.reset();
-                            }
+                            deselectGate();
 
                             for (std::shared_ptr<Gate>& gate : gates)
                             {
                                 if (gate->takeClick(mpos))
                                 {
-                                    if (std::shared_ptr<Gate> spt = selected_gate.lock())
-                                        spt->selected = false;
                                     selected_gate = gate;
                                     gate->selected = true;
                                     moving_gate = true;
@@ -163,12 +161,7 @@ void Program::run()
                     switch (event.key.code)
                     {
                     case sf::Keyboard::Escape:
-                        if (std::shared_ptr<Gate> spt = selected_gate.lock())
-                        {
-                            moving_gate = false;
-                            spt->selected = false;
-                            selected_gate.reset();
-                        }
+                        deselectGate();
                         break;
                     default: break;
                     }
@@ -245,11 +238,7 @@ void Program::run()
                 }
 
                 if (ImGui::Button("Deselect"))
-                {
-                    spt->selected = false;
-                    selected_gate.reset();
-                    moving_gate = false;
-                }
+                    deselectGate();
 
                 if (ImGui::Button("Move"))
                     moving_gate = true;
@@ -261,6 +250,35 @@ void Program::run()
 
         ImGui::Begin("Edition Settings");
             ImGui::Checkbox("Grid mode movement", &grid_mode);
+        ImGui::End();
+
+        ImGui::Begin("Gates");
+        {
+            int i = -1;
+            if (ImGui::ListBox("Gates", &i, gate_type_names, sizeof(gate_type_names) / sizeof(void*)))
+            {
+                Gate* to_add = nullptr;
+                switch (i)
+                {
+                case 1: //Not gate
+                    to_add = new NotGate();
+                    break;
+
+                default: break;
+                }
+                if (to_add)
+                {
+                    deselectGate();
+
+                    std::shared_ptr<Gate> g(to_add);
+
+                    gates.push_back(g);
+                    selected_gate = g;
+                    to_add->selected = true;
+                    moving_gate = true;
+                }
+            }
+        }
         ImGui::End();
 
         if (std::shared_ptr<Gate> spt = selected_gate.lock())
@@ -299,4 +317,14 @@ void Program::run()
 void Program::end()
 {
     ImGui::SFML::Shutdown();
+}
+
+void Program::deselectGate()
+{
+    if (std::shared_ptr<Gate> spt = selected_gate.lock())
+    {
+        spt->selected = false;
+        selected_gate.reset();
+        moving_gate = false;
+    }
 }
