@@ -15,6 +15,8 @@ class Gate : public sf::Drawable
 
         void draw(sf::RenderTarget &target, sf::RenderStates states) const;
 
+        bool takeClick(sf::Vector2f click_pos) const;
+
         virtual void update(float delta) = 0;
 
         virtual void makeImGuiInterface() = 0;
@@ -35,4 +37,6 @@ class Gate : public sf::Drawable
 
     private:
         void drawPorts(sf::RenderTarget &target, sf::RenderStates states) const;
+
+        sf::CircleShape selected_marker;
 };

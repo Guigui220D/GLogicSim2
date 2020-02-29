@@ -1,22 +1,20 @@
 #pragma once
 
-#include <SFML/Graphics.hpp>
 #include <memory>
 
 #include "Output.h"
 
+#include "Connector.h"
+
 class Gate;
 
-class Input
+class Input : public Connector
 {
     public:
-        Input(sf::Vector2f relative_pos);
+        Input(Gate& gate, sf::Vector2f relative_pos);
         ~Input();
 
         inline bool isConnected() { return (bool)connected_output.lock(); }
-
-        void draw(sf::RenderTarget &target, sf::Transform transform, const Gate& gate) const;
-
         inline void updateState()
         {
             if (std::shared_ptr<Output> spt = connected_output.lock())
@@ -32,9 +30,5 @@ class Input
     private:
         std::weak_ptr<Output> connected_output;
 
-        sf::Vector2f relative_pos;
-
         bool state = false;
-
-        mutable sf::CircleShape circle;
 };
