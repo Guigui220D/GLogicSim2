@@ -7,6 +7,9 @@
 
 #include "NotGate.h"
 
+#include "NoSelector.h"
+#include "GateSelector.h"
+
 const char* Program::gate_type_names[] =
 {
     "Buffer Gate",
@@ -25,6 +28,10 @@ Program::~Program()
 
 bool Program::init()
 {
+    selectors.at(0).reset(new GateSelector(*this));
+    selectors.at(1).reset(new NoSelector(*this));
+    selectors.at(2).reset(new NoSelector(*this));
+
     render_window.setFramerateLimit(60);
 
     {
@@ -42,11 +49,6 @@ bool Program::init()
 
     menu_line.setFillColor(sf::Color::Cyan);
     menu_line.setThickness(3.f);
-
-    selected_marker.setOrigin(sf::Vector2f(50.f, 50.f));
-    selected_marker.setFillColor(sf::Color::Transparent);
-    selected_marker.setOutlineThickness(4.f);
-    selected_marker.setOutlineColor(sf::Color::Green);
 
     background.updateWithView(render_window.getView());
 
@@ -91,52 +93,16 @@ void Program::run()
                         if (imgui_io->WantCaptureMouse)
                             break;
 
-                        sf::Vector2f mpos = render_window.mapPixelToCoords(sf::Mouse::getPosition(render_window));
+                        //sf::Vector2f mpos = render_window.mapPixelToCoords(sf::Mouse::getPosition(render_window));
+
+                        if (selectors.at(selected_selector)->handleEvent(event))
+                            break;
 
                         if (event.mouseButton.button == sf::Mouse::Left)
                         {
-                            bool clicked = false;
-                            for (std::shared_ptr<Gate>& gate : gates)
-                            {
-                                if (gate->takeClick(mpos))
-                                {
-                                    deselectGate();
-                                    selected_gate = gate;
-                                    gate->selected = true;
-                                    clicked = true;
-                                    break;
-                                }
-                            }
-
-                            if (!clicked)
-                            {
-                                dragging = true;
-                                drag_origin = render_window.mapPixelToCoords(sf::Mouse::getPosition());
-                            }
+                            dragging = true;
+                            drag_origin = render_window.mapPixelToCoords(sf::Mouse::getPosition());
                         }
-
-                        if (event.mouseButton.button == sf::Mouse::Right)
-                        {
-                            if (moving_gate)
-                            {
-                                moving_gate = false;
-                                break;
-                            }
-
-                            deselectGate();
-
-                            for (std::shared_ptr<Gate>& gate : gates)
-                            {
-                                if (gate->takeClick(mpos))
-                                {
-                                    selected_gate = gate;
-                                    gate->selected = true;
-                                    moving_gate = true;
-                                    break;
-                                }
-                            }
-                        }
-
                     }
                     break;
 
@@ -161,7 +127,7 @@ void Program::run()
                     switch (event.key.code)
                     {
                     case sf::Keyboard::Escape:
-                        deselectGate();
+                        selectors.at(selected_selector)->deselect();
                         break;
                     default: break;
                     }
@@ -179,23 +145,7 @@ void Program::run()
         for (const std::shared_ptr<Gate>& gate : gates)
             gate->update(delta);
 
-        if (std::shared_ptr<Gate> spt = selected_gate.lock())
-            if (moving_gate)
-            {
-                if (grid_mode)
-                {
-                    sf::Vector2f pos = render_window.mapPixelToCoords(sf::Mouse::getPosition(render_window));
-
-                    pos /= 100.f;
-                    pos.x = std::round(pos.x);
-                    pos.y = std::round(pos.y);
-                    pos *= 100.f;
-
-                    spt->position = pos;
-                }
-                else
-                    spt->position = render_window.mapPixelToCoords(sf::Mouse::getPosition(render_window));
-            }
+        selectors.at(selected_selector)->update(delta);
 
         if (dragging)
         {
@@ -215,37 +165,7 @@ void Program::run()
         ImGui::Begin("Selected gate");
             sf::Vector2i menu_pos = ImGui::GetCursorScreenPos();
 
-            if (std::shared_ptr<Gate> spt = selected_gate.lock())
-            {
-                if (moving_gate)
-                {
-                    ImGui::Text("YOU ARE IN GATE MOVING MODE");
-                    ImGui::Text("Right click to place the gate, Escape to cancel");
-                    ImGui::Separator();
-                }
-
-                spt->makeImGuiInterface();
-
-                ImGui::Separator();
-
-                ImGui::SliderInt("Angle", &spt->rotation, -4, 4, "");
-                ImGui::SliderInt("Size", &spt->size, 1, 3, "");
-
-                if (ImGui::Button("Delete"))
-                {
-                    gates.erase(std::find(gates.begin(), gates.end(), spt));
-                    moving_gate = false;
-                }
-
-                if (ImGui::Button("Deselect"))
-                    deselectGate();
-
-                if (ImGui::Button("Move"))
-                    moving_gate = true;
-
-            }
-            else
-                ImGui::Text("Click on a gate to edit it");
+            selectors.at(selected_selector)->doImGui();
         ImGui::End();
 
         ImGui::Begin("Edition Settings");
@@ -261,13 +181,14 @@ void Program::run()
                 switch (i)
                 {
                 case 1: //Not gate
-                    to_add = new NotGate();
+                    //to_add = new NotGate();
                     break;
 
                 default: break;
                 }
                 if (to_add)
                 {
+                    /*
                     deselectGate();
 
                     std::shared_ptr<Gate> g(to_add);
@@ -276,13 +197,14 @@ void Program::run()
                     selected_gate = g;
                     to_add->selected = true;
                     moving_gate = true;
+                    */
                 }
             }
         }
         ImGui::End();
 
-        if (std::shared_ptr<Gate> spt = selected_gate.lock())
-            menu_line.setPointA(spt->position);
+        if (selectors.at(selected_selector)->selected())
+            menu_line.setPointA(selectors.at(selected_selector)->getPosition());
         menu_line.setPointB(render_window.mapPixelToCoords(menu_pos));
 
         //Drawing
@@ -290,23 +212,13 @@ void Program::run()
 
         render_window.draw(background);
 
-        sf::Vector2f mpos = render_window.mapPixelToCoords(sf::Mouse::getPosition(render_window));
         for (const std::shared_ptr<Gate>& gate : gates)
-        {
             render_window.draw(*gate);
-            if (gate->takeClick(mpos))
-            {
-                selected_marker.setPosition(gate->position);
-                float ra = 50.f * gate->size;
-                selected_marker.setRadius(ra);
-                selected_marker.setOrigin(sf::Vector2f(ra, ra));
-                render_window.draw(selected_marker);
-            }
-        }
 
-
-        if (selected_gate.lock())
+        if (selectors.at(selected_selector)->selected())
             render_window.draw(menu_line);
+
+        render_window.draw(*selectors.at(selected_selector));
 
         ImGui::SFML::Render(render_window);
 
@@ -317,14 +229,4 @@ void Program::run()
 void Program::end()
 {
     ImGui::SFML::Shutdown();
-}
-
-void Program::deselectGate()
-{
-    if (std::shared_ptr<Gate> spt = selected_gate.lock())
-    {
-        spt->selected = false;
-        selected_gate.reset();
-        moving_gate = false;
-    }
 }

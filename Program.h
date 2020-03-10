@@ -11,10 +11,18 @@
 #include "Gate.h"
 #include "Connector.h"
 
+#include "Selector.h"
+
 #include <vector>
+#include <array>
+#include <memory>
 
 class Program
 {
+    friend class Selector;
+    friend class GateSelector;
+    friend class NoSelector;
+
     public:
         Program();
         ~Program();
@@ -31,18 +39,14 @@ class Program
 
         Line menu_line;
 
-        sf::CircleShape selected_marker;
-
         bool dragging = false;
         sf::Vector2f drag_origin;
 
-        void deselectGate();
-
         std::vector<std::shared_ptr<Gate>> gates;
-        std::weak_ptr<Gate> selected_gate;
-        std::weak_ptr<Connector> selected_connected;
 
-        bool moving_gate = false;
+        std::array<std::unique_ptr<Selector>, 3> selectors;
+        int selected_selector = 0;
+
         bool grid_mode = true;
 
         static const char* gate_type_names[];
