@@ -44,24 +44,54 @@ void GateSelector::update(float delta)
 
 bool GateSelector::handleEvent(sf::Event& event)
 {
-    if (event.mouseButton.button == sf::Mouse::Left)
+    if (event.type == sf::Event::MouseButtonPressed)
     {
-        sf::Vector2f mpos = program.render_window.mapPixelToCoords(sf::Mouse::getPosition(program.render_window));
-
-        bool clicked = false;
-        for (std::shared_ptr<Gate>& gate : program.gates)
+        if (event.mouseButton.button == sf::Mouse::Left)
         {
-            if (gate->takeClick(mpos))
+            if (!moving_gate)
             {
-                deselect();
-                selected_gate = gate;
-                gate->selected = true;
-                clicked = true;
-                break;
+                sf::Vector2f mpos = program.render_window.mapPixelToCoords(sf::Mouse::getPosition(program.render_window));
+
+                bool clicked = false;
+                for (std::shared_ptr<Gate>& gate : program.gates)
+                {
+                    if (gate->takeClick(mpos))
+                    {
+                        deselect();
+                        selected_gate = gate;
+                        gate->selected = true;
+                        clicked = true;
+                        break;
+                    }
+                }
+                return clicked;
             }
+            else if (selected())
+            {
+                moving_gate = false;
+                return true;
+            }
+
         }
-        return clicked;
     }
+
+    if (event.type == sf::Event::KeyPressed)
+    {
+        if (event.key.code == sf::Keyboard::Escape)
+        {
+            if (selected())
+            {
+                if (moving_gate)
+                {
+                    moving_gate = false;
+                }
+                else
+                    deselect();
+            }
+            return true;
+        }
+    }
+
     return false;
 }
 
@@ -77,24 +107,33 @@ void GateSelector::doImGui()
 {
     if (std::shared_ptr<Gate> spt = selected_gate.lock())
     {
-        spt->makeImGuiInterface();
-
-        ImGui::Separator();
-
-        ImGui::SliderInt("Angle", &spt->rotation, -4, 4, "");
-        ImGui::SliderInt("Size", &spt->size, 1, 3, "");
-
-        if (ImGui::Button("Delete"))
+        if (moving_gate)
         {
-            //TODO
-            deselect();
+            ImGui::Text("You are moving this gate.");
+            ImGui::Text("Press escape or click again to stop moving it.");
+        }
+        else
+        {
+            spt->makeImGuiInterface();
+
+            ImGui::Separator();
+
+            ImGui::SliderInt("Angle", &spt->rotation, -4, 4, "");
+            ImGui::SliderInt("Size", &spt->size, 1, 3, "");
+
+            if (ImGui::Button("Delete"))
+            {
+                spt->remove = true;
+                deselect();
+            }
+
+            if (ImGui::Button("Deselect"))
+                deselect();
+
+            if (ImGui::Button("Move"))
+                moving_gate = true;
         }
 
-        if (ImGui::Button("Deselect"))
-            deselect();
-
-        if (ImGui::Button("Move"))
-            moving_gate = true;
     }
     else
         ImGui::Text("Click on a gate to select it");

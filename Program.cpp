@@ -124,13 +124,8 @@ void Program::run()
                     break;
 
                 case sf::Event::KeyPressed:
-                    switch (event.key.code)
-                    {
-                    case sf::Keyboard::Escape:
-                        selectors.at(selected_selector)->deselect();
-                        break;
-                    default: break;
-                    }
+                    if (selectors.at(selected_selector)->handleEvent(event))
+                            break;
 
                     break;
 
@@ -141,6 +136,10 @@ void Program::run()
 
         //Updates
         delta = delta_clock.getElapsedTime().asSeconds();
+
+        gates.erase(std::remove_if(gates.begin(), gates.end(),
+           [](const std::shared_ptr<Gate>& gate) { return gate->remove; }),
+           gates.end());
 
         for (const std::shared_ptr<Gate>& gate : gates)
             gate->update(delta);
@@ -181,23 +180,18 @@ void Program::run()
                 switch (i)
                 {
                 case 1: //Not gate
-                    //to_add = new NotGate();
+                    to_add = new NotGate();
                     break;
 
                 default: break;
                 }
                 if (to_add)
                 {
-                    /*
-                    deselectGate();
+                    selectors.at(selected_selector)->deselect();
 
                     std::shared_ptr<Gate> g(to_add);
 
                     gates.push_back(g);
-                    selected_gate = g;
-                    to_add->selected = true;
-                    moving_gate = true;
-                    */
                 }
             }
         }

@@ -29,6 +29,8 @@ class Gate : public sf::Drawable
         int rotation = 0;
         int size = 2;
 
+        bool remove = false;
+
     protected:
         std::vector<std::shared_ptr<Input>> inputs;
         std::vector<std::shared_ptr<Output>> outputs;
