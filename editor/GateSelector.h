@@ -32,4 +32,6 @@ class GateSelector : public Selector
         std::weak_ptr<Gate> selected_gate;
 
         bool moving_gate = false;
+
+        sf::CircleShape selected_marker;
 };

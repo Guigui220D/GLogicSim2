@@ -9,9 +9,13 @@
 #include <cmath>
 
 GateSelector::GateSelector(Program& program) :
-    Selector(program)
+    Selector(program),
+    selected_marker(50.f)
 {
-    //ctor
+    selected_marker.setOrigin(sf::Vector2f(50.f, 50.f));
+    selected_marker.setFillColor(sf::Color::Transparent);
+    selected_marker.setOutlineThickness(4.f);
+    selected_marker.setOutlineColor(sf::Color::Red);
 }
 
 GateSelector::~GateSelector()
@@ -21,11 +25,15 @@ GateSelector::~GateSelector()
 
 void GateSelector::update(float delta)
 {
-    if (!moving_gate)
-        return;
-
     if (std::shared_ptr<Gate> spt = selected_gate.lock())
     {
+        selected_marker.setPosition(spt->position);
+        selected_marker.setRadius(50.f * spt->size);
+        selected_marker.setOrigin(sf::Vector2f(50.f * spt->size, 50.f * spt->size));
+
+        if (!moving_gate)
+            return;
+
         if (program.grid_mode)
         {
             sf::Vector2f pos = program.render_window.mapPixelToCoords(sf::Mouse::getPosition(program.render_window));
@@ -59,7 +67,6 @@ bool GateSelector::handleEvent(sf::Event& event)
                     {
                         deselect();
                         selected_gate = gate;
-                        gate->selected = true;
                         clicked = true;
                         break;
                     }
@@ -97,8 +104,6 @@ bool GateSelector::handleEvent(sf::Event& event)
 
 void GateSelector::deselect()
 {
-    if (std::shared_ptr<Gate> spt = selected_gate.lock())
-        spt->selected = false;
     moving_gate = false;
     selected_gate.reset();
 }
@@ -139,7 +144,11 @@ void GateSelector::doImGui()
         ImGui::Text("Click on a gate to select it");
 }
 
-void GateSelector::draw(sf::RenderTarget &target, sf::RenderStates states) const {}
+void GateSelector::draw(sf::RenderTarget &target, sf::RenderStates states) const
+{
+    if (selected())
+        target.draw(selected_marker);
+}
 
 bool GateSelector::selected() const
 {

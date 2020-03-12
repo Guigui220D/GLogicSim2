@@ -2,13 +2,9 @@
 
 sf::Font Gate::icon_font;
 
-Gate::Gate() :
-    selected_marker(50.f)
+Gate::Gate()
 {
-    selected_marker.setOrigin(sf::Vector2f(50.f, 50.f));
-    selected_marker.setFillColor(sf::Color::Transparent);
-    selected_marker.setOutlineThickness(4.f);
-    selected_marker.setOutlineColor(sf::Color::Red);
+
 }
 
 Gate::~Gate()
@@ -24,9 +20,6 @@ void Gate::draw(sf::RenderTarget &target, sf::RenderStates states) const
 
     drawGate(target, states);
     drawPorts(target, states);
-
-    if (selected)
-        target.draw(selected_marker, states);
 }
 
 void Gate::drawPorts(sf::RenderTarget &target, sf::RenderStates states) const
@@ -40,9 +33,6 @@ void Gate::drawPorts(sf::RenderTarget &target, sf::RenderStates states) const
 
 bool Gate::takeClick(sf::Vector2f click_pos) const
 {
-    if (selected)
-        return false;
-
     sf::Vector2f diff = click_pos - position;
     return (diff.x * diff.x + diff.y * diff.y) <= 50.f * 50.f * size * size;
 }

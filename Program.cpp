@@ -178,7 +178,16 @@ void Program::run()
         ImGui::Begin("Edition Settings");
             ImGui::Checkbox("Grid mode movement", &grid_mode);
 
-            ImGui::ListBox("Modes", &selected_selector, modes_names, sizeof(modes_names) / sizeof(void*));
+            {
+                int i = selected_selector;
+
+                if (ImGui::ListBox("Modes", &i, modes_names, sizeof(modes_names) / sizeof(void*)))
+                {
+                    selectors.at(selected_selector)->deselect();
+                    selected_selector = i;
+                }
+            }
+
 
         ImGui::End();
 

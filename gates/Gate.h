@@ -21,8 +21,6 @@ class Gate : public sf::Drawable
 
         virtual void makeImGuiInterface() = 0;
 
-        bool selected = false;
-
         static sf::Font icon_font;
 
         sf::Vector2f position;
@@ -39,6 +37,4 @@ class Gate : public sf::Drawable
 
     private:
         void drawPorts(sf::RenderTarget &target, sf::RenderStates states) const;
-
-        sf::CircleShape selected_marker;
 };
