@@ -9,11 +9,19 @@
 
 #include "NoSelector.h"
 #include "GateSelector.h"
+#include "PortSelector.h"
 
 const char* Program::gate_type_names[] =
 {
     "Buffer Gate",
     "Not Gate"
+};
+
+const char* Program::modes_names[] =
+{
+    "Gate Edition",
+    "Wires Edition",
+    "Safe Mode"
 };
 
 Program::Program() :
@@ -29,7 +37,7 @@ Program::~Program()
 bool Program::init()
 {
     selectors.at(0).reset(new GateSelector(*this));
-    selectors.at(1).reset(new NoSelector(*this));
+    selectors.at(1).reset(new PortSelector(*this));
     selectors.at(2).reset(new NoSelector(*this));
 
     render_window.setFramerateLimit(60);
@@ -161,7 +169,7 @@ void Program::run()
 
         ImGui::SFML::Update(render_window, delta_clock.restart());
 
-        ImGui::Begin("Selected gate");
+        ImGui::Begin("Selection");
             sf::Vector2i menu_pos = ImGui::GetCursorScreenPos();
 
             selectors.at(selected_selector)->doImGui();
@@ -169,6 +177,9 @@ void Program::run()
 
         ImGui::Begin("Edition Settings");
             ImGui::Checkbox("Grid mode movement", &grid_mode);
+
+            ImGui::ListBox("Modes", &selected_selector, modes_names, sizeof(modes_names) / sizeof(void*));
+
         ImGui::End();
 
         ImGui::Begin("Gates");

@@ -50,4 +50,5 @@ class Program
         bool grid_mode = true;
 
         static const char* gate_type_names[];
+        static const char* modes_names[];
 };
